@@ -4,12 +4,12 @@ import pandas as pd
 import datetime as dt
 import requests
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.ensemble import RandomForestRegressor
 from tensorflow.keras.layers import Dense, Dropout, LSTM
 from tensorflow.keras.models import Sequential
 from bs4 import BeautifulSoup
-from googlesearch import search
 import yfinance as yf
-from database import create_connection, create_tables, insert_price_prediction, insert_news
+from database import create_connection, create_tables, insert_price_prediction, insert_news, check_price_prediction_exists, check_news_exists
 
 # Define Google News scraping function
 def scrape_google_news(query):
@@ -57,18 +57,27 @@ for x in range(prediction_minutes, len(scaled_data)):
 x_train, y_train = np.array(x_train), np.array(y_train)
 x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
 
-# Create Neural Network
-model = Sequential()
-model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
-model.add(Dropout(0.2))
-model.add(LSTM(units=50, return_sequences=True))
-model.add(Dropout(0.2))
-model.add(LSTM(units=50))
-model.add(Dropout(0.2))
-model.add(Dense(units=1))
+# Create LSTM Model
+model_lstm = Sequential()
+model_lstm.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+model_lstm.add(Dropout(0.2))
+model_lstm.add(LSTM(units=50, return_sequences=True))
+model_lstm.add(Dropout(0.2))
+model_lstm.add(LSTM(units=50))
+model_lstm.add(Dropout(0.2))
+model_lstm.add(Dense(units=1))
 
-model.compile(optimizer='adam', loss='mean_squared_error')
-model.fit(x_train, y_train, epochs=25, batch_size=32)
+model_lstm.compile(optimizer='adam', loss='mean_squared_error')
+model_lstm.fit(x_train, y_train, epochs=25, batch_size=32)
+
+# Random Forest Regressor erstellen
+model_rf = RandomForestRegressor(n_estimators=100, random_state=0)
+
+# Anpassung der Form von x_train
+x_train_rf = x_train.reshape(x_train.shape[0], x_train.shape[1])
+
+# Modelltraining mit Random Forest Regressor
+model_rf.fit(x_train_rf, y_train)
 
 # Fetch news from Google News
 query = f'{crypto_currency} news'  # Query to search for news
@@ -94,11 +103,18 @@ for x in range(prediction_minutes, len(model_inputs)):
 x_test = np.array(x_test)
 x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
 
-prediction_prices = model.predict(x_test)
-prediction_prices = scaler.inverse_transform(prediction_prices)
+# Generate predictions using LSTM
+prediction_prices_lstm = model_lstm.predict(x_test)
+prediction_prices_lstm = scaler.inverse_transform(prediction_prices_lstm)
+
+# Generate predictions using Random Forest Regressor
+x_test_rf = x_test.reshape(x_test.shape[0], x_test.shape[1])
+prediction_prices_rf = model_rf.predict(x_test_rf)
+prediction_prices_rf = scaler.inverse_transform(prediction_prices_rf.reshape(-1, 1)).flatten()
 
 plt.plot(actual_prices, color='black', label='Actual Prices')
-plt.plot(prediction_prices, color='green', label='Predicted Prices')
+plt.plot(prediction_prices_lstm, color='blue', label='LSTM Predicted Prices')
+plt.plot(prediction_prices_rf, color='green', label='Random Forest Predicted Prices')
 plt.title(f'{crypto_currency} price prediction')
 plt.xlabel('Time')
 plt.ylabel('Price')
@@ -111,13 +127,15 @@ conn = create_connection("database.db")
 # Tabellen erstellen
 create_tables(conn)
 
-# Speichere die Preisvorhersagen in der Datenbank
+# Speichere die Preisvorhersagen mit LSTM-Modell in der Datenbank
 for i in range(len(actual_prices)):
     actual_price = actual_prices[i]
-    prediction_price = prediction_prices[i]
+    prediction_price = prediction_prices_lstm[i]
 
-    # Rufe die Funktion insert_price_prediction auf, um die Daten in der Datenbank zu speichern
-    insert_price_prediction(conn, actual_price, prediction_price)
+    # Überprüfen, ob die Preisvorhersage bereits in der Datenbank vorhanden ist
+    if not check_price_prediction_exists(conn, actual_price, prediction_price):
+        # Rufe die Funktion insert_price_prediction auf, um die Daten in der Datenbank zu speichern
+        insert_price_prediction(conn, actual_price, prediction_price)
 
 # Speichere die Google News in der Datenbank
 for headline in news_headlines:
@@ -125,8 +143,11 @@ for headline in news_headlines:
     link = headline['link']
     pub_date = headline['pub_date']
 
-    # Rufe die Funktion insert_news auf, um die Daten in der Datenbank zu speichern
-    insert_news(conn, title, link, pub_date)
+    # Überprüfen, ob die Nachricht bereits in der Datenbank vorhanden ist
+    if not check_news_exists(conn, title, link):
+        # Rufe die Funktion insert_news auf, um die Daten in der Datenbank zu speichern
+        insert_news(conn, title, link, pub_date)
+
 
 # Verbindung zur Datenbank schließen
 conn.close()
