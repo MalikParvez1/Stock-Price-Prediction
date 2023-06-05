@@ -8,6 +8,7 @@ import yfinance as yf
 from sklearn.feature_extraction.text import CountVectorizer
 from textblob import TextBlob
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+from database import create_connection, create_tables, insert_tweet
 
 
 app = Twitter()
@@ -68,5 +69,18 @@ data_merged['action'] = data_merged['return_prediction'].apply(lambda x: 'buy' i
 #sentiment
 sid = SentimentIntensityAnalyzer()
 tweet_df['sentiment'] = tweet_df['text_tweet'].apply(lambda x: sid.polarity_scores(x))
-print(tweet_df[['text', 'sentiment']])
+print(tweet_df[['text_tweet', 'sentiment']])
+
+# ... (existing code)
+
+# Speichere die Twitter-Daten in der Datenbank
+conn = create_connection("database.db")
+create_tables(conn)
+
+for tweet in all_tweets:
+    insert_tweet(conn, tweet.text, tweet.author.username, tweet.date, tweet.views, len(tweet.text))
+
+conn.close()
+
+# ... (existing code)
 

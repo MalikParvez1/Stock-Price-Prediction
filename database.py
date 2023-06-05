@@ -32,6 +32,15 @@ def create_tables(conn):
                         pub_date TEXT
                     )''')
 
+        c.execute('''CREATE TABLE IF NOT EXISTS tweets (
+                          id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          text_tweet TEXT,
+                          author TEXT,
+                          created_at TEXT,
+                          views INTEGER,
+                          length INTEGER
+                      )''')
+
         conn.commit()
         print("Tables created successfully")
     except sqlite3.Error as e:
@@ -62,3 +71,33 @@ def insert_news(conn, title, link, pub_date):
         print("News inserted successfully")
     except sqlite3.Error as e:
         print(e)
+
+def insert_tweet(conn, text_tweet, author, created_at, views, length):
+    sql = '''INSERT INTO tweets(text_tweet, author, created_at, views, length)
+             VALUES(?, ?, ?, ?, ?)'''
+
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, (text_tweet, author, created_at, views, length))
+        conn.commit()
+        print("Tweet inserted successfully")
+    except sqlite3.Error as e:
+        print(e)
+
+# Funktion zum Überprüfen der Preisvorhersage in der Datenbank
+def check_price_prediction_exists(conn, actual_price, prediction_price):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM price_predictions WHERE actual_price = ? AND prediction_price = ?",
+                   (actual_price, prediction_price))
+    result = cursor.fetchone()
+    cursor.close()
+    return result is not None
+
+# Funktion zum Überprüfen der Nachricht in der Datenbank
+def check_news_exists(conn, title, link):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM news WHERE title = ? AND link = ?", (title, link))
+    result = cursor.fetchone()
+    cursor.close()
+    return result is not None
+
