@@ -2,34 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import datetime as dt
-import requests
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestRegressor
 from tensorflow.keras.layers import Dense, Dropout, LSTM
 from tensorflow.keras.models import Sequential
-from bs4 import BeautifulSoup
 import yfinance as yf
 from database import create_connection, create_tables, insert_price_prediction, insert_news, check_price_prediction_exists, check_news_exists
 
 # Define Google News scraping function
-def scrape_google_news(query):
-    url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'xml')
-    articles = soup.findAll('item')
-    news = []
 
-    for article in articles:
-        title = article.title.text
-        link = article.link.text
-        pub_date = article.pubDate.text
-        news.append({
-            'title': title,
-            'link': link,
-            'pub_date': pub_date
-        })
-
-    return news
 
 
 crypto_currency = 'BTC'
@@ -80,8 +61,7 @@ x_train_rf = x_train.reshape(x_train.shape[0], x_train.shape[1])
 model_rf.fit(x_train_rf, y_train)
 
 # Fetch news from Google News
-query = f'{crypto_currency} news'  # Query to search for news
-news_headlines = scrape_google_news(query)
+
 
 # Perform further processing on the news headlines
 
@@ -136,17 +116,6 @@ for i in range(len(actual_prices)):
     if not check_price_prediction_exists(conn, actual_price, prediction_price):
         # Rufe die Funktion insert_price_prediction auf, um die Daten in der Datenbank zu speichern
         insert_price_prediction(conn, actual_price, prediction_price)
-
-# Speichere die Google News in der Datenbank
-for headline in news_headlines:
-    title = headline['title']
-    link = headline['link']
-    pub_date = headline['pub_date']
-
-    # Überprüfen, ob die Nachricht bereits in der Datenbank vorhanden ist
-    if not check_news_exists(conn, title, link):
-        # Rufe die Funktion insert_news auf, um die Daten in der Datenbank zu speichern
-        insert_news(conn, title, link, pub_date)
 
 
 # Verbindung zur Datenbank schließen
