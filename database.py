@@ -84,20 +84,19 @@ def insert_tweet(conn, text_tweet, author, created_at, views, length):
     except sqlite3.Error as e:
         print(e)
 
-# Funktion zum Überprüfen der Preisvorhersage in der Datenbank
-def check_price_prediction_exists(conn, actual_price, prediction_price):
+# Funktion zum Überprüfen, ob der Tweet in der Datenbank vorhanden ist
+def check_tweet_exists(conn, text_tweet, author, created_at, views, length):
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM price_predictions WHERE actual_price = ? AND prediction_price = ?",
-                   (actual_price, prediction_price))
+    cursor.execute("SELECT * FROM tweets WHERE text_tweet = ? AND author = ? AND created_at = ? AND views = ? AND length = ?",
+                   (text_tweet, author, created_at, views, length))
     result = cursor.fetchone()
     cursor.close()
     return result is not None
 
-# Funktion zum Überprüfen der Nachricht in der Datenbank
+# Funktion zum Überprüfen, ob die Nachricht in der Datenbank vorhanden ist
 def check_news_exists(conn, title, link):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM news WHERE title = ? AND link = ?", (title, link))
     result = cursor.fetchone()
     cursor.close()
     return result is not None
-
