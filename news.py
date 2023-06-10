@@ -1,7 +1,7 @@
 from database import create_connection, create_tables, insert_news, check_news_exists
 import requests
 from bs4 import BeautifulSoup
-
+import time
 
 crypto_currency = 'BTC'
 
@@ -24,26 +24,32 @@ def scrape_google_news(query):
 
     return news
 
-query = f'{crypto_currency} news'  # Query to search for news
-news_headlines = scrape_google_news(query)
-
 # Verbindung zur Datenbank herstellen
 conn = create_connection("database.db")
 
 # Tabellen erstellen
 create_tables(conn)
 
-# Speichere die Google News in der Datenbank
-for headline in news_headlines:
-    title = headline['title']
-    link = headline['link']
-    pub_date = headline['pub_date']
+while True:
+    # Suchanfrage für die Google News
+    query = f'{crypto_currency} news'  # Query to search for news
 
-    # Überprüfen, ob die Nachricht bereits in der Datenbank vorhanden ist
-    if not check_news_exists(conn, title, link):
-        # Rufe die Funktion insert_news auf, um die Daten in der Datenbank zu speichern
-        insert_news(conn, title, link, pub_date)
+    # News von Google News abrufen
+    news_headlines = scrape_google_news(query)
 
+    # Neue News in die Datenbank speichern
+    for headline in news_headlines:
+        title = headline['title']
+        link = headline['link']
+        pub_date = headline['pub_date']
+
+        # Überprüfen, ob die Nachricht bereits in der Datenbank vorhanden ist
+        if not check_news_exists(conn, title, link):
+            # Rufe die Funktion insert_news auf, um die Daten in der Datenbank zu speichern
+            insert_news(conn, title, link, pub_date)
+
+    # Wartezeit von 1 Minute
+    time.sleep(60)
 
 # Verbindung zur Datenbank schließen
 conn.close()
