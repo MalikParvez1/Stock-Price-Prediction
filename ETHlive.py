@@ -13,7 +13,7 @@ def save_price_to_csv(price):
     now = datetime.now()
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
     date = now.strftime('%Y-%m-%d')
-    with open('../Api/ethereum_price.csv', 'a', newline='') as file:
+    with open('../Api/eth_price.csv', 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([date, timestamp, price])
 
