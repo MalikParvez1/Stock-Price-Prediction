@@ -21,7 +21,7 @@ def create_dataframe_from_tweets(tweets: List[Tweet]) -> pd.DataFrame:
         if len(tweet.text) == 0:
             continue
         data.append({
-            "id": tweet.id,
+            "id ": tweet.id,
             "text_tweet": tweet.text,
             "author": tweet.author.username,
             "created_at": tweet.date,
