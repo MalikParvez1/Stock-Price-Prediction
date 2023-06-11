@@ -12,7 +12,6 @@ import time
 
 from database import create_connection, create_tables, insert_tweet, check_tweet_exists
 
-
 app = Twitter()
 
 def create_dataframe_from_tweets(tweets: List[Tweet]) -> pd.DataFrame:
@@ -35,7 +34,7 @@ def create_dataframe_from_tweets(tweets: List[Tweet]) -> pd.DataFrame:
     df = df[df.created_at.dt.date > datetime.now().date() - pd.to_timedelta("365day")]
     return df
 
-def fetch_tweets(usernames: List[str], cryptocurrency: str):
+def fetch_tweets(usernames: List[str], cryptocurrencies: List[str]):
     # Verbindung zur Datenbank herstellen
     conn = create_connection("database.db")
 
@@ -47,8 +46,11 @@ def fetch_tweets(usernames: List[str], cryptocurrency: str):
     for username in usernames:
         tweets = app.get_tweets(username=username, pages=100)
         for tweet in tweets:
-            if cryptocurrency.lower() in tweet.text.lower():
-                all_tweets.append(tweet)
+            tweet_text = tweet.text.lower()
+            for cryptocurrency in cryptocurrencies:
+                if cryptocurrency.lower() in tweet_text:
+                    all_tweets.append(tweet)
+                    break  # Tweet enthält die Kryptowährung, weitere Überprüfungen überspringen
 
     # Tweets in DataFrame umwandeln
     tweet_df = create_dataframe_from_tweets(all_tweets)
@@ -75,31 +77,31 @@ def fetch_tweets(usernames: List[str], cryptocurrency: str):
     data_dtm = data_dtm.drop('date', axis=1)
 
     #CRYPTO PRICES
-    crypto_currency = 'ETH'
     against_currency = 'USD'
-    eth_data = yf.download(tickers=f'{crypto_currency}-{against_currency}', period='10y', interval='1d')
-    eth_data = pd.DataFrame(eth_data)
-    eth_data['prediction'] = eth_data['Close'].shift(periods=-1)
-    eth_data['return_prediction'] = eth_data['prediction'] / eth_data['Close'] - 1
 
-    #JOIN PRICES AND TWEETS
-    data_merged = pd.merge(data_dtm, eth_data[['return_prediction']], how='left', left_on=['created_at'],
-                           right_index=True)
-    data_merged = data_merged.dropna()
-    data_merged = data_merged.reset_index(drop=True)
-    data_merged['action'] = data_merged['return_prediction'].apply(lambda x: 'buy' if x > 0.002 else 'sell')
+    for cryptocurrency in cryptocurrencies:
+        crypto_data = yf.download(tickers=f'{cryptocurrency}-{against_currency}', period='10y', interval='1d')
+        crypto_data = pd.DataFrame(crypto_data)
+        crypto_data['prediction'] = crypto_data['Close'].shift(periods=-1)
+        crypto_data['return_prediction'] = crypto_data['prediction'] / crypto_data['Close'] - 1
 
-    #sentiment
-    sid = SentimentIntensityAnalyzer()
-    tweet_df['sentiment'] = tweet_df['text_tweet'].apply(lambda x: sid.polarity_scores(x))
-    print(tweet_df[['text_tweet', 'sentiment']])
+        # JOIN PRICES AND TWEETS
+        data_merged = pd.merge(data_dtm, crypto_data[['return_prediction']], how='left', left_on=['created_at'],
+                               right_index=True)
+        data_merged = data_merged.dropna()
+        data_merged = data_merged.reset_index(drop=True)
+        data_merged['action'] = data_merged['return_prediction'].apply(lambda x: 'buy' if x > 0.002 else 'sell')
 
+        # sentiment
+        sid = SentimentIntensityAnalyzer()
+        tweet_df['sentiment'] = tweet_df['text_tweet'].apply(lambda x: sid.polarity_scores(x))
+        print(tweet_df[['text_tweet', 'sentiment']])
 
 # Liste der Benutzernamen, von denen Tweets abgerufen werden sollen
 usernames = ["VitalikButerin", "elonmusk"]
-cryptocurrency = "ETH"
+cryptocurrencies = ["ETH", "BTC", "ADA"]
 
 # Endlosschleife, um Tweets alle 1 Minute abzurufen
 while True:
-    fetch_tweets(usernames, cryptocurrency)
+    fetch_tweets(usernames, cryptocurrencies)
     time.sleep(60)  # Pause von 1 Minute
