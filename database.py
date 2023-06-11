@@ -59,6 +59,15 @@ def insert_price_prediction(conn, actual_price, prediction_price):
     except sqlite3.Error as e:
         print(e)
 
+# Funktion zum Überprüfen, ob die Preisvorhersage in der Datenbank vorhanden ist
+def check_price_prediction_exists(conn, actual_price, prediction_price):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM price_predictions WHERE actual_price = ? AND prediction_price = ?",
+                   (actual_price, prediction_price))
+    result = cursor.fetchone()
+    cursor.close()
+    return result is not None
+
 
 def insert_news(conn, title, link, pub_date):
     sql = '''INSERT INTO news(title, link, pub_date)

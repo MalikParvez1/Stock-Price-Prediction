@@ -35,7 +35,7 @@ def create_dataframe_from_tweets(tweets: List[Tweet]) -> pd.DataFrame:
     df = df[df.created_at.dt.date > datetime.now().date() - pd.to_timedelta("365day")]
     return df
 
-def fetch_tweets(usernames: List[str]):
+def fetch_tweets(usernames: List[str], cryptocurrency: str):
     # Verbindung zur Datenbank herstellen
     conn = create_connection("database.db")
 
@@ -46,7 +46,9 @@ def fetch_tweets(usernames: List[str]):
     all_tweets = []
     for username in usernames:
         tweets = app.get_tweets(username=username, pages=100)
-        all_tweets.extend(tweets)
+        for tweet in tweets:
+            if cryptocurrency.lower() in tweet.text.lower():
+                all_tweets.append(tweet)
 
     # Tweets in DataFrame umwandeln
     tweet_df = create_dataframe_from_tweets(all_tweets)
@@ -73,7 +75,7 @@ def fetch_tweets(usernames: List[str]):
     data_dtm = data_dtm.drop('date', axis=1)
 
     #CRYPTO PRICES
-    crypto_currency = 'BTC'
+    crypto_currency = 'ETH'
     against_currency = 'USD'
     eth_data = yf.download(tickers=f'{crypto_currency}-{against_currency}', period='10y', interval='1d')
     eth_data = pd.DataFrame(eth_data)
@@ -92,14 +94,12 @@ def fetch_tweets(usernames: List[str]):
     tweet_df['sentiment'] = tweet_df['text_tweet'].apply(lambda x: sid.polarity_scores(x))
     print(tweet_df[['text_tweet', 'sentiment']])
 
-    # ... (existing code)
-
 
 # Liste der Benutzernamen, von denen Tweets abgerufen werden sollen
 usernames = ["VitalikButerin", "elonmusk"]
+cryptocurrency = "ETH"
 
 # Endlosschleife, um Tweets alle 1 Minute abzurufen
 while True:
-    fetch_tweets(usernames)
+    fetch_tweets(usernames, cryptocurrency)
     time.sleep(60)  # Pause von 1 Minute
-
