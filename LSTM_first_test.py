@@ -108,9 +108,21 @@ next_minute_prediction_lstm = scaler.inverse_transform(next_minute_prediction_ls
 next_minute_prediction_rf = model_rf.predict(next_minute_input.reshape(1, -1))
 next_minute_prediction_rf = scaler.inverse_transform(next_minute_prediction_rf.reshape(-1, 1)).flatten()
 
+print("_____________________________________________________")
+print("_____________________________________________________")
+
 print("Actual price:", actual_prices)
+print("LSTM Predicted Price:", prediction_prices_lstm)
+print("Random Forest Predicted Price:", prediction_prices_rf)
+
+print("_____________________________________________________")
+print("_____________________________________________________")
+
 print("LSTM Predicted Price for the next minute:", next_minute_prediction_lstm[0][0])
 print("Random Forest Predicted Price for the next minute:", next_minute_prediction_rf[0])
+
+print("_____________________________________________________")
+print("_____________________________________________________")
 
 # Verbindung zur Datenbank herstellen
 conn = create_connection("database.db")
