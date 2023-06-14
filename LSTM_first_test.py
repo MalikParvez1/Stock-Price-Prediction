@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestRegressor
 from tensorflow.keras.layers import Dense, Dropout, LSTM
 from tensorflow.keras.models import Sequential
 import yfinance as yf
+from sklearn.metrics import r2_score
 from database import create_connection, create_tables, insert_price_prediction, insert_news, check_price_prediction_exists, check_news_exists
 
 # Define Google News scraping function
@@ -100,6 +101,48 @@ plt.xlabel('Time')
 plt.ylabel('Price')
 plt.legend()
 plt.show()
+
+r2 = r2_score(actual_prices, prediction_prices_rf)
+print('R2:',  r2)
+# Simulating trades
+virtual_account_balance = 10000  # Initial virtual account balance in USD
+holding_coins = 0  # Number of coins held
+buy_threshold = 0.0000  # Threshold for buying (2% increase in price)
+sell_threshold = -0.0000  # Threshold for selling (2% decrease in price)
+total_profit_loss = 0  # Track total profit/loss
+
+for i in range(len(prediction_prices_rf)):
+    predicted_price = prediction_prices_rf[i]
+    actual_price = actual_prices[i]
+
+    if predicted_price >= actual_price * (1 + buy_threshold):
+        # Buy signal
+        if holding_coins == 0:
+            coins_to_buy = virtual_account_balance / actual_price
+            holding_coins = coins_to_buy
+            virtual_account_balance = 0
+            print(f"Buy {coins_to_buy} coins at price {actual_price}")
+
+    elif predicted_price <= actual_price * (1 + sell_threshold):
+        # Sell signal
+        if holding_coins > 0:
+            coins_to_sell = holding_coins
+            virtual_account_balance = coins_to_sell * actual_price
+            holding_coins = 0
+            print(f"Sell {coins_to_sell} coins at price {actual_price}")
+            # Calculate profit/loss
+            profit_loss = (virtual_account_balance - 10000) / 10000
+            total_profit_loss += profit_loss
+
+    # Print current balance and holdings
+    print(f"Virtual Account Balance: {virtual_account_balance} USD")
+    print(f"Holding Coins: {holding_coins} coins")
+
+# Calculate percentage return on investment
+percentage_return = (virtual_account_balance - 10000) / 10000 * 100
+
+print("Total Profit/Loss:", total_profit_loss)
+print("Percentage Return on Investment:", percentage_return, "%")
 
 # Verbindung zur Datenbank herstellen
 conn = create_connection("database.db")

@@ -4,10 +4,10 @@ import time
 from datetime import datetime
 
 def get_ethereum_price():
-    url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur"
     response = requests.get(url)
     data = response.json()
-    return data['ethereum']['usd']
+    return data['ethereum']['eur']
 
 def save_price_to_csv(price):
     now = datetime.now()
