@@ -8,6 +8,7 @@ from tensorflow.keras.layers import Dense, Dropout, LSTM
 from tensorflow.keras.models import Sequential
 import yfinance as yf
 
+
 crypto_currency = 'ETH'
 against_currency = 'USD'
 

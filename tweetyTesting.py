@@ -10,6 +10,7 @@ from textblob import TextBlob
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 
+
 app = Twitter()
 
 def create_dataframe_from_tweets(tweets: List[Tweet]) -> pd.DataFrame:

@@ -42,6 +42,7 @@ warnings.filterwarnings("ignore")
 
 check_and_make_directories([DATA_SAVE_DIR, TRAINED_MODEL_DIR, TENSORBOARD_LOG_DIR, RESULTS_DIR])
 
+
 TRAIN_START_DATE = '2010-01-01'
 TRAIN_END_DATE = '2021-10-01'
 TEST_START_DATE = '2021-10-01'
