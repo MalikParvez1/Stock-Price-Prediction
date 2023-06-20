@@ -17,12 +17,13 @@ def create_tables(conn):
     try:
         c = conn.cursor()
 
-        # Tabelle price_predictions erstellen
+        # Table price_predictions
         c.execute('''CREATE TABLE IF NOT EXISTS price_predictions (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        actual_price REAL,
-                        prediction_price REAL
-                    )''')
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                date_time DATETIME,
+                                actual_price REAL,
+                                predicted_price REAL
+                            )''')
 
         # Tabelle news erstellen
         c.execute('''CREATE TABLE IF NOT EXISTS news (
@@ -47,13 +48,13 @@ def create_tables(conn):
         print(e)
 
 
-def insert_price_prediction(conn, actual_price, prediction_price):
-    sql = '''INSERT INTO price_predictions(actual_price, prediction_price)
-             VALUES(?, ?)'''
+def insert_price_prediction(conn, date_time, actual_price, predicted_price):
+    sql = '''INSERT INTO price_predictions(date_time, actual_price, predicted_price)
+             VALUES(?, ?, ?)'''
 
     try:
         cur = conn.cursor()
-        cur.execute(sql, (actual_price, prediction_price))
+        cur.execute(sql, (date_time, actual_price, predicted_price))
         conn.commit()
         print("Price prediction inserted successfully")
     except sqlite3.Error as e:
