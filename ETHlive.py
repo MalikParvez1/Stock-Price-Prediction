@@ -14,12 +14,12 @@ def save_price_to_csv(price):
     now = datetime.now()
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
     date = now.strftime('%Y-%m-%d')
-    with open('../Api/eth_price.csv', 'a', newline='') as file:
+    with open('Api/eth_price.csv', 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([date, timestamp, price])
 
 def insert_newest_price_to_database(conn):
-    with open('../Api/eth_price.csv', 'r') as file:
+    with open('Api/eth_price.csv', 'r') as file:
         csv_reader = csv.reader(file)
         rows = list(csv_reader)
         if len(rows) > 1:

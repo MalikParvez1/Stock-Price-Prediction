@@ -34,9 +34,9 @@ def create_dataframe_from_tweets(tweets: List[Tweet]) -> pd.DataFrame:
     df = df[df.created_at.dt.date > datetime.now().date() - pd.to_timedelta("365day")]
     return df
 
-def fetch_tweets(usernames: List[str], cryptocurrencies: List[str]):
+def fetch_tweets(usernames: List[str]):
     # Verbindung zur Datenbank herstellen
-    conn = create_connection("database.db")
+    conn = create_connection("test2.db")
 
     # Tabellen erstellen
     create_tables(conn)
@@ -44,13 +44,10 @@ def fetch_tweets(usernames: List[str], cryptocurrencies: List[str]):
     # Tweets von den angegebenen Benutzern abrufen
     all_tweets = []
     for username in usernames:
-        tweets = app.get_tweets(username=username, pages=100)
+        tweets = app.get_tweets(username=username, pages=1)
         for tweet in tweets:
             tweet_text = tweet.text.lower()
-            for cryptocurrency in cryptocurrencies:
-                if cryptocurrency.lower() in tweet_text:
-                    all_tweets.append(tweet)
-                    break  # Tweet enthält die Kryptowährung, weitere Überprüfungen überspringen
+            all_tweets.append(tweet)
 
     # Tweets in DataFrame umwandeln
     tweet_df = create_dataframe_from_tweets(all_tweets)
@@ -60,6 +57,7 @@ def fetch_tweets(usernames: List[str], cryptocurrencies: List[str]):
     for tweet in all_tweets:
         if not check_tweet_exists(conn, tweet.text, tweet.author.username, tweet.date, tweet.views, len(tweet.text)):
             insert_tweet(conn, tweet.text, tweet.author.username, tweet.date, tweet.views, len(tweet.text))
+            print("TWEET IS NEW!")
 
     # Datenbankverbindung schließen
     conn.close()
@@ -98,10 +96,10 @@ def fetch_tweets(usernames: List[str], cryptocurrencies: List[str]):
         print(tweet_df[['text_tweet', 'sentiment']])
 
 # Liste der Benutzernamen, von denen Tweets abgerufen werden sollen
-usernames = ["VitalikButerin", "elonmusk"]
+usernames = ["VitalikButerin","elonmusk", "ErikVoorhees","Sassal0x", "rogerkver", "APompliano", "cz_binance", "scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred" ]
 cryptocurrencies = ["ETH", "BTC", "ADA"]
 
 # Endlosschleife, um Tweets alle 1 Minute abzurufen
 while True:
-    fetch_tweets(usernames, cryptocurrencies)
+    fetch_tweets(usernames)
     time.sleep(60)  # Pause von 1 Minute

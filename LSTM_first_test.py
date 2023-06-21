@@ -9,18 +9,50 @@ from tensorflow.keras.models import Sequential
 import yfinance as yf
 from sklearn.metrics import r2_score
 from database import create_connection, create_tables, insert_price_prediction, insert_news, check_price_prediction_exists, check_news_exists
+import csv
 
-# Define Google News scraping function
+# Assuming your CSV data is in the format: "YYYY-MM-DD,YYYY-MM-DD HH:MM:SS,actual_price,predicted_price"
+def insert_newest_price_from_csv(conn, csv_file):
+    try:
+        with open(csv_file, 'r') as file:
+            csv_reader = csv.reader(file)
+            rows = list(csv_reader)
+            if len(rows) > 1:
+                latest_row = rows[-1]
+                date_time = latest_row[1]
+                actual_price = float(latest_row[2])
+                predicted_price = None
+                if len(latest_row) >= 4:
+                    predicted_price = float(latest_row[3])
 
-crypto_currency = 'BTC'
-against_currency = 'USD'
+                if not check_price_prediction_exists(conn, date_time, actual_price, predicted_price):
+                    insert_price_prediction(conn, date_time, actual_price, predicted_price)
 
-# Specify the date range for data retrieval
-start = dt.datetime(2016, 1, 1)
-end = dt.datetime.now()
+                print("Newest data inserted from CSV successfully")
+            else:
+                print("CSV file does not contain any new data")
+    except FileNotFoundError:
+        print("CSV file not found")
+    except IndexError:
+        print("Invalid CSV format")
 
-# Fetch historical price data
-data = yf.download(tickers=f'{crypto_currency}-{against_currency}', period='7d', interval='1m')
+# Usage example:
+db_file = "database.db"
+csv_file = 'Api/eth_price.csv'
+
+# Connect to the database
+conn = create_connection(db_file)
+
+# Create tables if they don't exist
+create_tables(conn)
+
+# Insert the newest row from the CSV into the database
+insert_newest_price_from_csv(conn, csv_file)
+
+# Close the database connection
+conn.close()
+
+
 
 # Prepare Data
 scaler = MinMaxScaler(feature_range=(0, 1))

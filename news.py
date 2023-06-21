@@ -25,7 +25,7 @@ def scrape_google_news(query):
     return news
 
 # Verbindung zur Datenbank herstellen
-conn = create_connection("database.db")
+conn = create_connection("test2.db")
 
 # Tabellen erstellen
 create_tables(conn)

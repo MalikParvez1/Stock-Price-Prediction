@@ -5,7 +5,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 
 # Lade die historischen Preise aus der CSV-Datei
-df = pd.read_csv('../Api/newETHUSD2.csv')
+
 second_column = df.iloc[:, 1]
 
 # Entferne das Komma und konvertiere in Float-Werte

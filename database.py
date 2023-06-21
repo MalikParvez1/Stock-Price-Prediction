@@ -97,8 +97,8 @@ def insert_tweet(conn, text_tweet, author, created_at, views, length):
 # Funktion zum Überprüfen, ob der Tweet in der Datenbank vorhanden ist
 def check_tweet_exists(conn, text_tweet, author, created_at, views, length):
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tweets WHERE text_tweet = ? AND author = ? AND created_at = ? AND views = ? AND length = ?",
-                   (text_tweet, author, created_at, views, length))
+    cursor.execute("SELECT * FROM tweets WHERE text_tweet = ? AND author = ? AND created_at = ?",
+                   (text_tweet, author, created_at))
     result = cursor.fetchone()
     cursor.close()
     return result is not None
