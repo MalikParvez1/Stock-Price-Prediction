@@ -63,7 +63,7 @@ def insert_price_prediction(conn, date_time, actual_price, predicted_price):
 # Funktion zum Überprüfen, ob die Preisvorhersage in der Datenbank vorhanden ist
 def check_price_prediction_exists(conn, actual_price, prediction_price):
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM price_predictions WHERE actual_price = ? AND prediction_price = ?",
+    cursor.execute("SELECT * FROM price_predictions WHERE actual_price = ? AND predicted_price = ?",
                    (actual_price, prediction_price))
     result = cursor.fetchone()
     cursor.close()
