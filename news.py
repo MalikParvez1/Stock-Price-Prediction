@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
-crypto_currency = 'BTC'
+crypto_currency = 'ETH'
 
 def scrape_google_news(query):
     url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"

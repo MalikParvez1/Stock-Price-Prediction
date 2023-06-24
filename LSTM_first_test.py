@@ -6,6 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.ensemble import RandomForestRegressor
 from tensorflow.keras.layers import Dense, Dropout, LSTM
 from tensorflow.keras.models import Sequential
+import tensorflow
 import yfinance as yf
 from sklearn.metrics import r2_score
 from database import create_connection, create_tables, insert_price_prediction, insert_news, check_price_prediction_exists, check_news_exists

@@ -43,9 +43,12 @@ def fetch_tweets(usernames: List[str]):
 
     # Tweets von den angegebenen Benutzern abrufen
     all_tweets = []
+    counter = 0;
     for username in usernames:
-        tweets = app.get_tweets(username=username, pages=1)
+        tweets = app.get_tweets(username=username, pages=100)
         for tweet in tweets:
+            counter= counter+1
+            print(counter)
             tweet_text = tweet.text.lower()
             all_tweets.append(tweet)
 
@@ -96,10 +99,12 @@ def fetch_tweets(usernames: List[str]):
         print(tweet_df[['text_tweet', 'sentiment']])
 
 # Liste der Benutzernamen, von denen Tweets abgerufen werden sollen
-usernames = ["VitalikButerin","elonmusk", "ErikVoorhees","Sassal0x", "rogerkver", "APompliano", "cz_binance", "scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred" ]
+#usernames = ["VitalikButerin","elonmusk", "ErikVoorhees","Sassal0x", "rogerkver", "APompliano", "cz_binance", "scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred" ]
+usernames = ["VitalikButerin"]
+
 cryptocurrencies = ["ETH", "BTC", "ADA"]
 
 # Endlosschleife, um Tweets alle 1 Minute abzurufen
 while True:
     fetch_tweets(usernames)
-    time.sleep(60)  # Pause von 1 Minute
+    time.sleep(5)  # Pause von 1 Minute
