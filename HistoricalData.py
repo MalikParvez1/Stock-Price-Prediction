@@ -10,7 +10,8 @@ from textblob import TextBlob
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import time
 
-from database import create_connection, create_tables, insert_tweet, check_tweet_exists
+from database import create_connection, create_tables, insert_tweet, check_tweet_exists, check_price_prediction_exists, \
+    insert_price_prediction
 
 app = Twitter()
 
@@ -45,6 +46,7 @@ def fetch_tweets(usernames: List[str]):
     all_tweets = []
     counter = 0;
     for username in usernames:
+        print(username)
         tweets = app.get_tweets(username=username, pages=100)
         for tweet in tweets:
             counter= counter+1
@@ -99,12 +101,25 @@ def fetch_tweets(usernames: List[str]):
         print(tweet_df[['text_tweet', 'sentiment']])
 
 # Liste der Benutzernamen, von denen Tweets abgerufen werden sollen
-usernames = ["VitalikButerin","elonmusk", "ErikVoorhees","Sassal0x", "rogerkver", "APompliano", "cz_binance", "scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred" ]
-
-cryptocurrencies = ["ETH", "BTC", "ADA"]
-
-
+#usernames = ["VitalikButerin","elonmusk", "ErikVoorhees","Sassal0x", "rogerkver", "APompliano", "cz_binance", "scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred" ]
+usernames = ["VitalikButerin","elonmusk", "ErikVoorhees"]
 fetch_tweets(usernames)
+
+usernames = ["Sassal0x", "rogerkver", "APompliano"]
+fetch_tweets(usernames)
+
+usernames = ["scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred"]
+fetch_tweets(usernames)
+
+usernames = ["DefiIgnas","Excellion", "DylanLeClair_", "CryptoWendyO", "CryptoHayes"]
+fetch_tweets(usernames)
+
+usernames= ["novogratz","glassnode","maxkeiser", "PeterMcCormack", "danheld", "WClementeIII", "elliotrades"]
+fetch_tweets(usernames)
+
+usernames= ["RaoulGMI", "TheMoonCarl", "saylor"]
+fetch_tweets(usernames)
+
 time.sleep(5)  # Pause von 1 Minute
 
 
@@ -117,9 +132,6 @@ def insert_historical_Prices_into_db():
                              "81.85727776": "Volume", "2": "Trades"}, inplace=True)
     dfPrices['Date'] = pd.to_datetime(dfPrices['Date'], unit='s')
     with open('ETHUSD_1.csv', 'r') as file:
-        csv_reader = csv.reader(file)
-        rows = list(csv_reader)
-        print(rows)
         for _, row in dfPrices.iterrows():
             date_time = str(row['Date'])
             actual_price = row['Close']
