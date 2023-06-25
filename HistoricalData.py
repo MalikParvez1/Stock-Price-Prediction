@@ -6,7 +6,6 @@ from datetime import datetime
 import datetime as dt
 import yfinance as yf
 from sklearn.feature_extraction.text import CountVectorizer
-from textblob import TextBlob
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import time
 
@@ -67,38 +66,7 @@ def fetch_tweets(usernames: List[str]):
     # Datenbankverbindung schließen
     conn.close()
 
-    #Split and Count Tweets words
-    count_vect = CountVectorizer(min_df=1)
-    X = count_vect.fit_transform(tweet_df["text_tweet"])
-    tweetTxt = tweet_df["text_tweet"]
-    dtm = pd.DataFrame(X.toarray())
-    dtm.columns = count_vect.get_feature_names_out()
-    data_dtm = pd.concat([tweet_df.reset_index(drop=True), dtm], axis=1)
 
-    #leave out the time of the tweets DATE column
-    data_dtm['created_at'] = pd.to_datetime(data_dtm['created_at'].apply(datetime.date))
-    data_dtm = data_dtm.drop('date', axis=1)
-
-    #CRYPTO PRICES
-    against_currency = 'USD'
-
-    for cryptocurrency in cryptocurrencies:
-        crypto_data = yf.download(tickers=f'{cryptocurrency}-{against_currency}', period='10y', interval='1d')
-        crypto_data = pd.DataFrame(crypto_data)
-        crypto_data['prediction'] = crypto_data['Close'].shift(periods=-1)
-        crypto_data['return_prediction'] = crypto_data['prediction'] / crypto_data['Close'] - 1
-
-        # JOIN PRICES AND TWEETS
-        data_merged = pd.merge(data_dtm, crypto_data[['return_prediction']], how='left', left_on=['created_at'],
-                               right_index=True)
-        data_merged = data_merged.dropna()
-        data_merged = data_merged.reset_index(drop=True)
-        data_merged['action'] = data_merged['return_prediction'].apply(lambda x: 'buy' if x > 0.002 else 'sell')
-
-        # sentiment
-        sid = SentimentIntensityAnalyzer()
-        tweet_df['sentiment'] = tweet_df['text_tweet'].apply(lambda x: sid.polarity_scores(x))
-        print(tweet_df[['text_tweet', 'sentiment']])
 
 # Liste der Benutzernamen, von denen Tweets abgerufen werden sollen
 #usernames = ["VitalikButerin","elonmusk", "ErikVoorhees","Sassal0x", "rogerkver", "APompliano", "cz_binance", "scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred" ]
