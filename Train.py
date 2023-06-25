@@ -48,11 +48,10 @@ total_columns = df.shape[1]
 print(total_columns)
 #wie viele Minuten schauen wir uns an für eine prediction
 backcandles = 60
-print(data_set_scaled.shape[0])
-for j in range(total_columns):
+for j in range(len(filtered_columns)):
     X.append([])
-    for i in range(backcandles, data_set_scaled.shape[0]): #backcandles + 2
-        X[j].append(data_set_scaled[i-backcandles:i,j])
+    for i in range(backcandles, data_set_scaled.shape[0]):
+        X[j].append(data_set_scaled[i-backcandles:i, j])
 
 X = np.array(X)  # Convert X to a numpy array
 X = np.reshape(X, (X.shape[0], X.shape[1], -1))  # Reshape X to add an extra dimension
