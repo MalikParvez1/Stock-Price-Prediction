@@ -24,8 +24,6 @@ df['EMAS'] = ta.ema(df.Close, length=150)
 df['target'] = df['Close'].shift(-1)
 print(df['target'], df['Close'])
 
-sc = MinMaxScaler(feature_range=(0,1))
-data_set_scaled = sc.fit_transform(df)
 
 #drop string data
 df.drop('author', axis=1, inplace=True)
@@ -33,22 +31,36 @@ df.drop('Date', axis=1, inplace=True)
 df.drop('created_at', axis=1, inplace=True)
 df.drop('views', axis=1, inplace=True)
 
+#filer columns out
+columns = df.columns[1:]
+threshold = 5
+filtered_columns = [col for col in columns if df[col].sum() > threshold]
+filtered_df = df[filtered_columns]
+
+sc = MinMaxScaler(feature_range=(0,1))
+data_set_scaled = sc.fit_transform(filtered_df)
+
+
+
 X = []
 
 total_columns = df.shape[1]
-
+print(total_columns)
 #wie viele Minuten schauen wir uns an für eine prediction
-backcandles = 6
+backcandles = 60
 print(data_set_scaled.shape[0])
 for j in range(total_columns):
     X.append([])
     for i in range(backcandles, data_set_scaled.shape[0]): #backcandles + 2
         X[j].append(data_set_scaled[i-backcandles:i,j])
 
-#mov axis from 0 to poistion 2
-X=np.moveaxis(X, [0], [2])
+X = np.array(X)  # Convert X to a numpy array
+X = np.reshape(X, (X.shape[0], X.shape[1], -1))  # Reshape X to add an extra dimension
 
-target_column_index = df.columns.get_loc('target')
+# Move axis from 0 to position 2
+X = np.moveaxis(X, [0], [2])
+
+target_column_index = filtered_df.columns.get_loc('target')
 print(target_column_index)
 
 X,yi = np.array(X), np.array(data_set_scaled[backcandles:,target_column_index])
@@ -68,7 +80,7 @@ lstm_input = Input(shape=(backcandles, total_columns), name = 'lstm_input')
 inputs = LSTM(150, name='first_layer')(lstm_input)
 inputs = Dense(1, name='dense_layer')(inputs)
 output = Activation('linear', name='output')(inputs)
-model = Model(inputs=lstm_input, output=output)
+model = Model(inputs=lstm_input, outputs=output)
 adam = optimizers.Adam()
-mdoel.compile(optimizers=adam, loss='mse')
+model.compile(optimizer=adam, loss='mse')
 model.fit(x=X_train, y=y_train, batch_size=15, epochs=30, shuffle=True, validation_split=0.1)
