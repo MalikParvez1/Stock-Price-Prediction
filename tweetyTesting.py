@@ -9,6 +9,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 from textblob import TextBlob
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import time
+import nltk
+nltk.download('vader_lexicon')
+
 
 from database import create_connection, create_tables, insert_tweet, check_tweet_exists
 
@@ -77,32 +80,16 @@ def fetch_tweets(usernames: List[str]):
     data_dtm['created_at'] = pd.to_datetime(data_dtm['created_at'].apply(datetime.date))
     data_dtm = data_dtm.drop('date', axis=1)
 
-    #CRYPTO PRICES
-    against_currency = 'USD'
 
-    for cryptocurrency in cryptocurrencies:
-        crypto_data = yf.download(tickers=f'{cryptocurrency}-{against_currency}', period='10y', interval='1d')
-        crypto_data = pd.DataFrame(crypto_data)
-        crypto_data['prediction'] = crypto_data['Close'].shift(periods=-1)
-        crypto_data['return_prediction'] = crypto_data['prediction'] / crypto_data['Close'] - 1
-
-        # JOIN PRICES AND TWEETS
-        data_merged = pd.merge(data_dtm, crypto_data[['return_prediction']], how='left', left_on=['created_at'],
-                               right_index=True)
-        data_merged = data_merged.dropna()
-        data_merged = data_merged.reset_index(drop=True)
-        data_merged['action'] = data_merged['return_prediction'].apply(lambda x: 'buy' if x > 0.002 else 'sell')
-
-        # sentiment
-        sid = SentimentIntensityAnalyzer()
-        tweet_df['sentiment'] = tweet_df['text_tweet'].apply(lambda x: sid.polarity_scores(x))
-        print(tweet_df[['text_tweet', 'sentiment']])
+    # sentiment
+    sid = SentimentIntensityAnalyzer()
+    tweet_df['sentiment'] = tweet_df['text_tweet'].apply(lambda x: sid.polarity_scores(x))
+    print(tweet_df[['text_tweet', 'sentiment']])
 
 # Liste der Benutzernamen, von denen Tweets abgerufen werden sollen
 #usernames = ["VitalikButerin","elonmusk", "ErikVoorhees","Sassal0x", "rogerkver", "APompliano", "cz_binance", "scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred" ]
-usernames = ["VitalikButerin"]
-
-cryptocurrencies = ["ETH", "BTC", "ADA"]
+usernames = ["VitalikButerin", "Sassal0x", "rogerkver", "APompliano", "scottmelker", "TheCryptoLark", "TimDraper", "SatoshiLite", "balajis", "brian_armstrong", "WuBlockchain", "woonomic", "CryptoWendyO", "MMCrypto", "100trillionUSD", "girlgone_crypto", "CryptoCred",
+             "DefiIgnas","Excellion", "DylanLeClair_", "CryptoWendyO", "CryptoHayes","novogratz","glassnode","maxkeiser", "PeterMcCormack", "danheld", "WClementeIII", "elliotrades","RaoulGMI", "TheMoonCarl", "saylor"]
 
 # Endlosschleife, um Tweets alle 1 Minute abzurufen
 while True:
